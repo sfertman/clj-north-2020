@@ -3,19 +3,10 @@
     [borg-central.config :as cfg]
     [borg-central.db :as db]))
 
-(defn apply-diff
-  "Returns a new calculated snapshot by applying diff on base."
-  [base diff]
-  (conj base diff))
-
-(defn compute
-  "Returns a new snapshot computed from base and diffs."
-  [base diffs]
-  (reduce apply-diff base diffs ))
-
-
 (def cache (atom (db/get-latest-snapshot)))
-(defn cached? []
+
+(defn cached?
+  []
   (< (System/currentTimeMillis) (+ (:timestamp @cache) cfg/T_CRON)))
 
 (defn get-latest
@@ -26,8 +17,27 @@
       (reset! cache latest-snap)
       latest-snap)))
 
-(defn store-snapshot!
+(defn store!
   [snap]
   (when (< (:timestamp @cache) (:timestamp snap))
     (reset! cache snap)
     (db/store-snapshot! snap)))
+
+(defn add-diff
+  "Returns a new calculated snapshot by adding diff to base."
+  [base diff]
+  {:timestamp (:timestamp diff)
+   :snapshot (conj (:snapshot base) (:snapshot diff))})
+
+(defn compute
+  "Returns a new snapshot computed from base and diffs."
+  [base diffs]
+  (reduce add-diff base diffs))
+
+(defn create-new!
+  []
+  (when-not (cached?)
+    (let [latest-snap (get-latest)
+          diffs (db/get-diffs (:timestamp latest-snap))
+          new-snap (compute latest-snap diffs)]
+      (store! new-snap))))

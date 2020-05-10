@@ -20,22 +20,22 @@
     {:latest-snapshot latest-snap
      :diffs latest-diffs}))
 
-(defn start-http-server! []
-  {:something 42})
+(defn start-diff-server! [] {:something 42})
 
-(defn stop-http-server! [s]
-  (gracefully-stop! s))
+(defn stop-diff-server! [s] (.stop s))
 
-(defn start-snapshot-cron! []
-  (with-interval cfg/T_CRON
-    (let [latest-snap (snap/get-latest)
-          latest-diffs (db/get-diffs (:timestamp latest-snap))
-          new-snap (snap/compute latest-snap latest-diffs)]
-      (snap/store-snapshot! new-snap))))
+(def snap-scheduler (atom {:running? false}))
 
-(defn stop-snapshot-cron! [s]
-  (gracefully-stop! s))
+(defn start-snap-scheduler! []
+  (reset! snap-scheduler {:running? true})
+  (while (:running? @snap-scheduler)
+    (Thread/sleep cfg/T_CRON)
+    (snap/create-new!)))
+
+(defn stop-snap-scheduler! [s]
+  (reset! s {:running? false}))
 
 (defn -main [& args]
-  (start-http-server!)
-  (start-snapshot-cron!))
+  (if ())
+  (start-diff-server!)
+  (start-snap-scheduler!))
