@@ -4,7 +4,7 @@
     [borg-central.db :as db]
     [borg-central.snapshot :as snap]
     [easy-rpc.server :refer [create-server start]]
-    [easy-rpc.client :refer [create-client]]))
+    [easy-rpc.client :refer [client]]))
 
 (defn sync-handler-naive
   [after-t]
@@ -14,8 +14,7 @@
      :diffs latest-diffs}))
 ;; This a bit naive; to be more efficient we would want to add cache
 
-(def snap-http (create-client cfg/rpc))
-(defn snap-µ [& args] (apply (:send-message snap-http) args))
+(def snap-µ (client cfg/rpc))
 
 (defn sync-handler
   "Returns latest snapshot and diffs."
