@@ -2,7 +2,9 @@
   (:require
     [borg-central.config :as cfg]
     [borg-central.db :as db]
-    [borg-central.snapshot :as snap]))
+    [borg-central.snapshot :as snap]
+    [easy-rpc.server :refer [create-server start]]
+    [easy-rpc.client :refer [create-client]]))
 
 (defn sync-handler-naive
   [after-t]
@@ -12,6 +14,9 @@
      :diffs latest-diffs}))
 ;; This a bit naive; to be more efficient we would want to add cache
 
+(def snap-http (create-client cfg/rpc))
+(defn snap-µ [& args] (apply (:send-message snap-http) args))
+
 (defn sync-handler
   "Returns latest snapshot and diffs."
   [after-t]
@@ -20,7 +25,16 @@
     {:latest-snapshot latest-snap
      :diffs latest-diffs}))
 
-(defn start-diff-server! [] {:something 42})
+#_(defn sync-handler
+  "Returns latest snapshot and diffs."
+  [after-t]
+  (let [latest-snap (snap-µ 'get-latest)
+        latest-diffs (db/get-diffs (max after-t (:timestamp latest-snap)))]
+    {:latest-snapshot latest-snap
+     :diffs latest-diffs}))
+
+
+(defn start-diff-server! [] {:something 42}) ;; hack up compojure something something; mebbe even def the handler in there to make it super simple and hacky
 
 (defn stop-diff-server! [s] (.stop s))
 
@@ -32,10 +46,27 @@
     (Thread/sleep cfg/T_CRON)
     (snap/create-new!)))
 
+#_(defn start-snap-scheduler! []
+  (reset! snap-scheduler {:running? true})
+  (while (:running? @snap-scheduler)
+    (Thread/sleep cfg/T_CRON)
+    (snap-µ 'create-new!)))
+
 (defn stop-snap-scheduler! [s]
   (reset! s {:running? false}))
 
+
 (defn -main [& args]
-  (if ())
   (start-diff-server!)
   (start-snap-scheduler!))
+
+(comment
+
+(defn parse-args [args] args)
+(defn -main [& args]
+  (let [args- (parse-args args)
+        services (or (seq (:services args-)) all-services)]
+    (doseq [s services]
+      (start! s))))
+
+)

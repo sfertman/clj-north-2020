@@ -1,12 +1,10 @@
-(ns borg-central.snapshot
+(ns borg-central.snapshot-µ
   (:require
     [borg-central.config :as cfg]
     [borg-central.db :as db]
     [redis-atom.core :refer [redis-atom]]))
 
-(def cache (atom (db/get-latest-snapshot)))
-
-#_(def cache (redis-atom :snapshot-cache (db/get-latest-snapshot)))
+(def cache (redis-atom :snapshot-cache (db/get-latest-snapshot)))
 
 (defn cached?
   []
