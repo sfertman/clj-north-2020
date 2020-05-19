@@ -60,7 +60,12 @@
   (start-snap-scheduler!))
 
 (comment
+;; start snap rpc server
+(def snap-service (atom nil))
+(reset! snap-service (start (create-server cfg/rpc)))
 
+(rpc-server/start! config) ;; <- this really is the way it should be -- ONE LINE OF CODE!
+;; returns atom containing rpc-server that you can later stop
 (defn parse-args [args] args)
 (defn -main [& args]
   (let [args- (parse-args args)
