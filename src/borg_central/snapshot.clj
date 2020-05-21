@@ -6,8 +6,6 @@
 
 (def cache (atom (db/get-latest-snapshot)))
 
-#_(def cache (redis-atom :snapshot-cache (db/get-latest-snapshot)))
-
 (defn cached?
   []
   (< (System/currentTimeMillis) (+ (:timestamp @cache) cfg/T_CRON)))

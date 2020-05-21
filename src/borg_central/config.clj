@@ -8,3 +8,5 @@
   :host "localhost"
   :port 3000
 })
+
+(def redis-conn {:pool {} :spec {:uri "redis://localhost:6379"}})

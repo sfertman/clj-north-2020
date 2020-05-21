@@ -4,7 +4,7 @@
     [borg-central.db :as db]
     [redis-atom.core :refer [redis-atom]]))
 
-(def cache (redis-atom :snapshot-cache (db/get-latest-snapshot)))
+(def cache (redis-atom cfg/redis-conn :snapshot-cache (db/get-latest-snapshot)))
 
 (defn cached?
   []
